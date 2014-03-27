@@ -1,0 +1,31 @@
+{
+  "name": "dilemma-server",
+  "version": "0.0.0",
+  "description": "Prisoner's Dilemma Strategy Runner Server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DamonOehlman/dilemma-server.git"
+  },
+  "keywords": [
+    "game-theory",
+    "prisoners-dilemma"
+  ],
+  "author": "Damon Oehlman <damon.oehlman@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DamonOehlman/dilemma-server/issues"
+  },
+  "homepage": "https://github.com/DamonOehlman/dilemma-server",
+  "dependencies": {
+    "cog": "^0.5.2",
+    "zmq": "^2.6.0",
+    "debug": "^0.7.4"
+  },
+  "devDependencies": {
+    "tape": "^2.12.0"
+  }
+}
