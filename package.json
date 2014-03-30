@@ -23,7 +23,8 @@
   "dependencies": {
     "cog": "^0.5.2",
     "zmq": "^2.6.0",
-    "debug": "^0.7.4"
+    "debug": "^0.7.4",
+    "inherits": "^2.0.1"
   },
   "devDependencies": {
     "tape": "^2.12.0"

@@ -1,12 +1,13 @@
 var debug = require('debug')('dilemma-server');
 var zmq = require('zmq');
 var defaults = require('cog/defaults');
+var Challenger = require('./challenger.js');
 
 /**
   # dilemma-server
 
   This is a server for automating the execution of
-  [prisoners dilemma]http://en.wikipedia.org/wiki/Prisoner's_dilemma)
+  [prisoners dilemma](http://en.wikipedia.org/wiki/Prisoner's_dilemma)
   strategies in an iterated, competitive environment.  This is being done for
   an upcoming [NICTA](http://nicta.com.au/) engineering retreat - yeah I know,
   NICTA is a cool place to work :)
@@ -29,7 +30,9 @@ var defaults = require('cog/defaults');
   ## ØMQ Communication Layer
 
   For running the challenge a simple request, respond pattern
-  has been used to implement client -> server communications.
+  has been used to implement client -> server communications.  When the
+  server is started it will bind to port `1441` (by default) on the
+  local machine.
 
 **/
 module.exports = function(opts, callback) {
@@ -40,15 +43,60 @@ module.exports = function(opts, callback) {
   // initialise the pending challengers array
   var pending = [];
 
+  function checkPending(startIdx) {
+    var test;
+    var match;
+
+    // ensure we have a value for start index
+    startIdx = startIdx !== undefined ? startIdx : 0;
+
+    // if we don't have enough challengers to perform a comparison
+    // abort
+    if (startIdx + 1 >= pending.length) {
+      return;
+    }
+
+    // extract a challenger from the list
+    test = pending.splice(startIdx, 1)[0];
+
+    // iterate through the remaining items and check for a valid match
+    pending.forEach(function(compare, idx) {
+      var isMatch = (! match) &&
+        (test.target === 'any' || test.target === compare.name) &&
+        (compare.target === 'any' || compare.target === test.name);
+
+      if (isMatch) {
+        match = compare;
+        pending.splice(idx, 1);
+      }
+    });
+
+    // if we have a match, then pair off
+    if (match) {
+      return compete(test, match);
+    }
+
+    // otherwise, reinsert the test item and check from the next item up
+    pending.splice(startIdx, 0, test);
+    checkPending(startIdx + 1);
+  }
+
+  function compete(a, b) {
+    console.log('testing a vs b', a, b);
+  }
+
   actions.reg = function(name, target) {
     var actionSocket = this;
-
-    pending.push({
+    var challenger = new Challenger({
       name: name.toString(),
       target: target.toString()
     });
 
-    debug('new challlenger registered, pending: ', pending);
+    debug('new challlenger registered: ', challenger.name);
+    pending.push(challenger);
+
+    // check for challenge requirements being satisfied
+    checkPending();
 
     setTimeout(function() {
       actionSocket.send('end');
@@ -71,11 +119,12 @@ module.exports = function(opts, callback) {
 
   // initialise default opts
   opts = defaults({}, opts, {
+    host: '0.0.0.0',
     port: 1441
   });
 
-  debug('attempting to bind server to tcp://127.0.0.1:' + opts.port);
-  socket.bind('tcp://127.0.0.1:' + opts.port, function(err) {
+  debug('attempting to bind server to tcp://' + opts.host + ':' + opts.port);
+  socket.bind('tcp://' + opts.host + ':' + opts.port, function(err) {
     if (err) {
       return callback(err);
     }
