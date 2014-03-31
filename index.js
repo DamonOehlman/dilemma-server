@@ -1,6 +1,7 @@
 var debug = require('debug')('dilemma-server');
 var zmq = require('zmq');
 var defaults = require('cog/defaults');
+var matchup = require('./matchup');
 var Challenger = require('./challenger.js');
 
 /**
@@ -36,7 +37,7 @@ var Challenger = require('./challenger.js');
 
 **/
 module.exports = function(opts, callback) {
-  var socket = zmq.socket('rep');
+  var socket = zmq.socket('router');
   var actions = {};
   var counter = 0;
 
@@ -73,7 +74,7 @@ module.exports = function(opts, callback) {
 
     // if we have a match, then pair off
     if (match) {
-      return compete(test, match);
+      return matchup(test, match);
     }
 
     // otherwise, reinsert the test item and check from the next item up
@@ -81,34 +82,39 @@ module.exports = function(opts, callback) {
     checkPending(startIdx + 1);
   }
 
-  function compete(a, b) {
-    console.log('testing a vs b', a, b);
-  }
-
-  actions.reg = function(name, target) {
-    var actionSocket = this;
-    var challenger = new Challenger({
+  actions.reg = function(source, name, target) {
+    // var actionSocket = this;
+    var challenger = new Challenger(this, source, {
       name: name.toString(),
       target: target.toString()
     });
 
-    debug('new challlenger registered: ', challenger.name);
+    debug('new challlenger registered: ' + challenger.name);
     pending.push(challenger);
+
+    // use the socket's event emitter to flag that a challenger
+    // has been registered
+    socket.emit('reg', challenger);
 
     // check for challenge requirements being satisfied
     checkPending();
+    // this.send([ source, '', 'end' ]);
 
-    setTimeout(function() {
-      actionSocket.send('end');
-    }, 1000);
+
+    // setTimeout(function() {
+    //   actionSocket.send('end');
+    // }, 1000);
   };
 
-  function handleMessage(msgType) {
-    var payload = [].slice.call(arguments, 1);
+  function handleMessage(source, envelope, msgType) {
+    var payload = [].slice.call(arguments, 3);
     var handler = actions[msgType];
 
+    debug('message from: ' + source);
+    debug('received message type: ' + msgType, arguments);
+
     if (typeof handler == 'function') {
-      handler.apply(this, payload);
+      handler.apply(this, [source].concat(payload));
     }
   }
 
@@ -124,6 +130,8 @@ module.exports = function(opts, callback) {
   });
 
   debug('attempting to bind server to tcp://' + opts.host + ':' + opts.port);
+
+  socket.identity = 'dilemma-server'; // TODO: include ip
   socket.bind('tcp://' + opts.host + ':' + opts.port, function(err) {
     if (err) {
       return callback(err);
@@ -133,4 +141,6 @@ module.exports = function(opts, callback) {
     socket.on('message', handleMessage);
     callback(null, socket);
   });
+
+  return socket;
 };
