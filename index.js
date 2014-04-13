@@ -81,7 +81,7 @@ module.exports = function(opts, callback) {
 
     // if we have a match, then pair off
     if (match) {
-      return matchup(activate(test), activate(match));
+      return matchup(3, activate(test), activate(match));
     }
 
     // otherwise, reinsert the test item and check from the next item up

@@ -25,7 +25,8 @@
     "cog": "^0.5.2",
     "zmq": "^2.6.0",
     "debug": "^0.7.4",
-    "inherits": "^2.0.1"
+    "inherits": "^2.0.1",
+    "whisk": "^0.6.0"
   },
   "devDependencies": {
     "tape": "^2.12.0"
