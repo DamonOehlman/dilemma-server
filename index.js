@@ -43,6 +43,13 @@ module.exports = function(opts, callback) {
 
   // initialise the pending challengers array
   var pending = [];
+  var active = [];
+
+  function activate(challenger) {
+    active.push(challenger);
+
+    return challenger;
+  }
 
   function checkPending(startIdx) {
     var test;
@@ -74,7 +81,7 @@ module.exports = function(opts, callback) {
 
     // if we have a match, then pair off
     if (match) {
-      return matchup(test, match);
+      return matchup(activate(test), activate(match));
     }
 
     // otherwise, reinsert the test item and check from the next item up
@@ -84,7 +91,7 @@ module.exports = function(opts, callback) {
 
   actions.reg = function(source, name, target) {
     // var actionSocket = this;
-    var challenger = new Challenger(this, source, {
+    var challenger = new Challenger(this, source.toString(), {
       name: name.toString(),
       target: target.toString()
     });
@@ -98,12 +105,17 @@ module.exports = function(opts, callback) {
 
     // check for challenge requirements being satisfied
     checkPending();
-    // this.send([ source, '', 'end' ]);
+  };
 
+  actions.upload = function(source, result) {
+    // find the specified challenger
+    var challenger = active.filter(function(chal) {
+      return chal.source === source.toString();
+    })[0];
 
-    // setTimeout(function() {
-    //   actionSocket.send('end');
-    // }, 1000);
+    if (challenger) {
+      challenger.addResult(result.toString());
+    }
   };
 
   function handleMessage(source, envelope, msgType) {
