@@ -1,5 +1,15 @@
-var runner = require('dilemma')('always-trust');
+var Strategy = require('dilemma/strategy');
 
-module.exports = runner(function() {
-  this.submit('C');
-});
+module.exports = function() {
+  var strategy = new Strategy({
+    title: 'always-trust'
+  });
+
+  strategy
+    .connect()
+    .on('exec', function() {
+      this.submit('C')
+    });
+
+  return strategy;
+};

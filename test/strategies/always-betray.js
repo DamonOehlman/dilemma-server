@@ -1,5 +1,15 @@
-var runner = require('dilemma')('always-betray');
+var Strategy = require('dilemma/strategy');
 
-runner(function() {
-  this.submit('D');
-});
+module.exports = function() {
+  var strategy = new Strategy({
+    title: 'always-betray'
+  });
+
+  strategy
+    .connect()
+    .on('exec', function() {
+      this.submit('D')
+    });
+
+  return strategy;
+};
