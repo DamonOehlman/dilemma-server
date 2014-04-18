@@ -15,7 +15,7 @@ var Challenger = require('./challenger.js');
 
   ## Interfacing with the Server
 
-  Interfacing with the server is primarily done through interfacing with 
+  Interfacing with the server is primarily done through interfacing with
   a [ØMQ](http://zeromq.org/) TCP socket on port `1441` (by default) of the
   machine this server is run on.  ØMQ was chosen as the communication layer
   as it provides bindings for a large number of languages and people should
@@ -37,8 +37,9 @@ var Challenger = require('./challenger.js');
 
 **/
 module.exports = function(opts, callback) {
+  var db = require('./db/memory')();
   var socket = zmq.socket('router');
-  var actions = {};
+  var actions = require('./actions')(socket, db);
   var counter = 0;
 
   // initialise the pending challengers array
@@ -89,35 +90,6 @@ module.exports = function(opts, callback) {
     checkPending(startIdx + 1);
   }
 
-  actions.reg = function(source, name, target) {
-    // var actionSocket = this;
-    var challenger = new Challenger(this, source.toString(), {
-      name: name.toString(),
-      target: target.toString()
-    });
-
-    debug('new challlenger registered: ' + challenger.name);
-    pending.push(challenger);
-
-    // use the socket's event emitter to flag that a challenger
-    // has been registered
-    socket.emit('reg', challenger);
-
-    // check for challenge requirements being satisfied
-    checkPending();
-  };
-
-  actions.upload = function(source, result) {
-    // find the specified challenger
-    var challenger = active.filter(function(chal) {
-      return chal.source === source.toString();
-    })[0];
-
-    if (challenger) {
-      challenger.addResult(result.toString());
-    }
-  };
-
   function handleMessage(source, envelope, msgType) {
     var payload = [].slice.call(arguments, 3);
     var handler = actions[msgType];
@@ -126,8 +98,12 @@ module.exports = function(opts, callback) {
     debug('received message type: ' + msgType, arguments);
 
     if (typeof handler == 'function') {
-      handler.apply(this, [source].concat(payload));
+      handler.apply(this, [source].concat(payload).map(toString));
     }
+  }
+
+  function toString(target) {
+    return typeof target.toString == 'function' ? target.toString() : target;
   }
 
   if (typeof opts == 'function') {
@@ -153,6 +129,9 @@ module.exports = function(opts, callback) {
     socket.on('message', handleMessage);
     callback(null, socket);
   });
+
+  // when the db pending changes, then check pending
+  db.on('change:pending', checkPending);
 
   return socket;
 };
