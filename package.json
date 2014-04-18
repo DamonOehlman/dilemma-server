@@ -34,7 +34,8 @@
     "pull-stream": "^2.22.0",
     "monotonic-timestamp": "0.0.8",
     "level-sublevel": "^5.2.0",
-    "js-combinatorics": "^0.2.5"
+    "js-combinatorics": "^0.2.5",
+    "async": "^0.7.0"
   },
   "devDependencies": {
     "tape": "^2.12.0"

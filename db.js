@@ -18,6 +18,9 @@ module.exports = function(server, opts) {
   // initialise the strategies sublevel
   db.strategyStore = db.sublevel('strategies');
 
+  // create a matchup sublevel store
+  db.matchups = db.sublevel('matchups');
+
   // initialise the in-memory set of strategies
   db.strategies = new SortedSet();
 
@@ -25,6 +28,18 @@ module.exports = function(server, opts) {
   db.log = function(entryType, text) {
     log.put([ ts(), entryType ].join('|'), text);
   };
+
+  db.matchup = function(a, b) {
+    function insert(b) {
+      var key = [ a, b ].sort().concat(ts()).join('|');
+      return db.matchups.put(key, 'TBA');
+    };
+
+    return b ? insert(a, b) : insert;
+  };
+
+  // create a getStrategy bound function
+  db.getStrategy = db.strategyStore.get.bind(db.strategyStore);
 
   // read the existing strategies and ensure that we have run combinations for them
   pull(
@@ -42,6 +57,12 @@ module.exports = function(server, opts) {
         queue.add('checkStrategy', value);
       });
     })
+  );
+
+  // process any pending matchups
+  pull(
+    pl.read(db.matchups, { tail: true }),
+    require('./matchup')(server, db)
   );
 
   pull(
