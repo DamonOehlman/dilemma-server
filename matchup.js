@@ -55,7 +55,7 @@ module.exports = pull.Sink(function(read, server, db, done) {
 
       server.comms.iterate(
         endpoints[idx],
-        opponent.length > 1 ? opponent.one() : null,
+        opponent.length > 1 ? opponent.one() : '',
         function(err, result) {
           if (err) {
             return callback(err);
