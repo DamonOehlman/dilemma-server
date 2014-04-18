@@ -10,6 +10,6 @@ module.exports = function(socket, db) {
     db.log('reg', 'registered strategy ' + name + ' for source: ' + source);
 
     // save the strategy
-    db.strategies.put(name, source);
+    db.strategyStore.put(name, source);
   };
 };

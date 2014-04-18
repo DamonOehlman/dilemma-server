@@ -12,24 +12,26 @@ test('start the server', function(t) {
 });
 
 test('register an always trust strategy', function(t) {
-  t.plan(2);
+  t.plan(3);
 
-  server.once('reg', function(challenger) {
-    t.pass('received registration notification');
+  server.once('strategy', function(item) {
+    t.ok(item, 'got item');
+    t.equal(item.key, 'always-trust');
   });
 
   strategies[0] = require('./strategies/always-trust')();
   t.pass('registered');
 });
 
-test('register a second always trust strategy', function(t) {
-  t.plan(2);
+test('register an always betray strategy', function(t) {
+  t.plan(3);
 
-  server.once('reg', function(challenger) {
-    t.pass('received registration notification');
+  server.once('strategy', function(item) {
+    t.ok(item, 'got item');
+    t.equal(item.key, 'always-betray');
   });
 
-  strategies[0] = require('./strategies/always-trust')();
+  strategies[0] = require('./strategies/always-betray')();
   t.pass('registered');
 });
 
@@ -42,6 +44,6 @@ test('wait for server to complete the execution', function(t) {
 
 test('stop the server', function(t) {
   t.plan(1);
-  server.close();
+  server.socket.close();
   t.pass('closed ok');
 });

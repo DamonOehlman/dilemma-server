@@ -1,8 +1,11 @@
 var debug = require('debug')('dilemma-server');
+var EventEmitter = require('events').EventEmitter;
 var zmq = require('zmq');
 var defaults = require('cog/defaults');
 var matchup = require('./matchup');
 var Challenger = require('./challenger.js');
+var pull = require('pull-stream');
+var processor = require('./processor');
 
 /**
   # dilemma-server
@@ -37,17 +40,16 @@ var Challenger = require('./challenger.js');
 
 **/
 module.exports = function(opts, callback) {
-  var db = require('./db')(opts);
-  var socket = zmq.socket('router');
+  var server = new EventEmitter();
+  var db = server.db = require('./db')(server, opts);
+  var socket = server.socket = zmq.socket('router');
   var actions = require('./actions')(socket, db);
 
   function handleMessage(source, envelope, msgType) {
     var payload = [].slice.call(arguments, 3);
     var handler = actions[msgType];
 
-    debug('message from: ' + source);
-    debug('received message type: ' + msgType, arguments);
-
+    debug('received ' + msgType + ' message from: ' + source);
     if (typeof handler == 'function') {
       handler.apply(this, [source].concat(payload).map(toString));
     }
@@ -81,5 +83,11 @@ module.exports = function(opts, callback) {
     callback(null, socket);
   });
 
-  return socket;
+  // process the queue
+  pull(
+    server.queue.read(),
+    processor(server, db)
+  );
+
+  return server;
 };
