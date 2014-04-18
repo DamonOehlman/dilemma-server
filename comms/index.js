@@ -1,4 +1,4 @@
-var mods = ['ping'];
+var mods = ['ping', 'iterate'];
 
 module.exports = function(socket) {
   var comms = {};

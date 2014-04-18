@@ -1,4 +1,4 @@
-var mods = ['reg', 'upload'];
+var mods = ['reg'];
 
 module.exports = function(socket, db) {
   var actions = {};
