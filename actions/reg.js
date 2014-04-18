@@ -1,18 +1,15 @@
 var debug = require('debug')('dilemma:action-reg');
 var Challenger = require('../challenger.js');
+var ts = require('monotonic-timestamp');
 
 module.exports = function(socket, db) {
-  return function(source, name, target) {
-    var challenger = new Challenger(this, source, {
-      name: name,
-      target: target
-    });
+  return function(source, name) {
+    debug('registering strategy: ' + name);
 
-    debug('new challlenger registered: ' + challenger.name);
-    db.pending.push(challenger);
+    // write a log entry showing an update
+    db.log('reg', 'registered strategy ' + name + ' for source: ' + source);
 
-    // use the socket's event emitter to flag that a challenger
-    // has been registered
-    socket.emit('reg', challenger);
+    // save the strategy
+    db.strategies.put(name, source);
   };
 };

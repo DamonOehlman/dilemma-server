@@ -27,7 +27,13 @@
     "debug": "^0.7.4",
     "inherits": "^2.0.1",
     "whisk": "^0.6.0",
-    "collections": "^1.0.2"
+    "collections": "^1.0.2",
+    "levelup": "^0.18.2",
+    "leveldown": "^0.10.2",
+    "pull-level": "^1.1.10",
+    "pull-stream": "^2.22.0",
+    "monotonic-timestamp": "0.0.8",
+    "level-sublevel": "^5.2.0"
   },
   "devDependencies": {
     "tape": "^2.12.0"

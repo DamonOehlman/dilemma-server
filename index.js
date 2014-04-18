@@ -37,54 +37,9 @@ var Challenger = require('./challenger.js');
 
 **/
 module.exports = function(opts, callback) {
-  var db = require('./db/memory')();
+  var db = require('./db')(opts);
   var socket = zmq.socket('router');
   var actions = require('./actions')(socket, db);
-  var counter = 0;
-
-  function activate(challenger) {
-    db.active.push(challenger);
-
-    return challenger;
-  }
-
-  function checkPending(startIdx) {
-    var test;
-    var match;
-
-    // ensure we have a value for start index
-    debug('checking pending');
-    startIdx = startIdx !== undefined ? startIdx : 0;
-
-    // if we don't have enough challengers to perform a comparison abort
-    if (startIdx + 1 >= db.pending.length) {
-      return;
-    }
-
-    // extract a challenger from the list
-    test = db.pending.splice(startIdx, 1)[0];
-
-    // iterate through the remaining items and check for a valid match
-    db.pending.forEach(function(compare, idx) {
-      var isMatch = (! match) &&
-        (test.target === 'any' || test.target === compare.name) &&
-        (compare.target === 'any' || compare.target === test.name);
-
-      if (isMatch) {
-        match = compare;
-        db.pending.splice(idx, 1);
-      }
-    });
-
-    // if we have a match, then pair off
-    if (match) {
-      return matchup(3, activate(test), activate(match));
-    }
-
-    // otherwise, reinsert the test item and check from the next item up
-    pending.splice(startIdx, 0, test);
-    checkPending(startIdx + 1);
-  }
 
   function handleMessage(source, envelope, msgType) {
     var payload = [].slice.call(arguments, 3);
@@ -125,9 +80,6 @@ module.exports = function(opts, callback) {
     socket.on('message', handleMessage);
     callback(null, socket);
   });
-
-  // when the db pending changes, then check pending
-  db.on('change:pending', checkPending);
 
   return socket;
 };
