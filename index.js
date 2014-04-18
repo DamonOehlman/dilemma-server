@@ -45,6 +45,13 @@ module.exports = function(opts, callback) {
   var socket = server.socket = zmq.socket('router');
   var actions = require('./actions')(socket, db);
 
+  // initialise server comms
+  var comms = server.comms = require('./comms')(socket);
+
+  function handleConnect() {
+    console.log('connect', arguments);
+  }
+
   function handleMessage(source, envelope, msgType) {
     var payload = [].slice.call(arguments, 3);
     var handler = actions[msgType];
@@ -79,6 +86,7 @@ module.exports = function(opts, callback) {
     }
 
     debug('started');
+    socket.on('connect', handleConnect);
     socket.on('message', handleMessage);
     callback(null, socket);
   });

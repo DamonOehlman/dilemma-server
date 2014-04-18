@@ -15,6 +15,17 @@ module.exports = function(server, opts) {
   var jobs = db.sublevel('jobs');
   var queue = server.queue = require('./queue')(server, db, opts);
 
+  function invalidatePriorMatchups(key) {
+    var start = key.split('|').slice(0, 2).join('|');
+
+    db.matchups.createReadStream({ start: start, end: key })
+      .on('data', function(item) {
+        if (item.key !== key && item.value === 'TBA') {
+          db.matchups.put(item.key, 'CANCELLED');
+        }
+      });
+  }
+
   // initialise the strategies sublevel
   db.strategyStore = db.sublevel('strategies');
 
@@ -32,6 +43,8 @@ module.exports = function(server, opts) {
   db.matchup = function(a, b) {
     function insert(b) {
       var key = [ a, b ].sort().concat(ts()).join('|');
+
+      invalidatePriorMatchups(key);
       return db.matchups.put(key, 'TBA');
     };
 
@@ -68,6 +81,7 @@ module.exports = function(server, opts) {
   pull(
     pl.live(db.strategyStore, { tail: true }),
     pull.drain(function(item) {
+      db.strategies.push(item.key);
       queue.add('runStrategy', item.key);
       server.emit('strategy', item);
     })

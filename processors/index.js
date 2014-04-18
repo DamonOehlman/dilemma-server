@@ -1,4 +1,4 @@
-var mods = ['checkStrategy'];
+var mods = ['checkStrategy', 'runStrategy'];
 
 module.exports = function(server, db) {
   var processors = {};

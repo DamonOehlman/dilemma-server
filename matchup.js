@@ -29,8 +29,17 @@ module.exports = pull.Sink(function(read, server, db, done) {
         return read(null, next);
       }
 
-      debug('processing matchup: ', results);
-      return read(null, next)
+      // ping the strategy runners
+      async.map(results, server.comms.ping, function(err, responses) {
+        // if the strategy runners are not available, then skip
+        if (err) {
+          debug('could not communicate with strategy runners, skipping matchup: ' + item.key);
+          return read(null, next);
+        }
+
+        debug('processing matchup: ', results);
+        return read(null, next)
+      });
     });
   }
 
