@@ -42,12 +42,8 @@ module.exports = function(opts, callback) {
   var actions = require('./actions')(socket, db);
   var counter = 0;
 
-  // initialise the pending challengers array
-  var pending = [];
-  var active = [];
-
   function activate(challenger) {
-    active.push(challenger);
+    db.active.push(challenger);
 
     return challenger;
   }
@@ -57,26 +53,26 @@ module.exports = function(opts, callback) {
     var match;
 
     // ensure we have a value for start index
+    debug('checking pending');
     startIdx = startIdx !== undefined ? startIdx : 0;
 
-    // if we don't have enough challengers to perform a comparison
-    // abort
-    if (startIdx + 1 >= pending.length) {
+    // if we don't have enough challengers to perform a comparison abort
+    if (startIdx + 1 >= db.pending.length) {
       return;
     }
 
     // extract a challenger from the list
-    test = pending.splice(startIdx, 1)[0];
+    test = db.pending.splice(startIdx, 1)[0];
 
     // iterate through the remaining items and check for a valid match
-    pending.forEach(function(compare, idx) {
+    db.pending.forEach(function(compare, idx) {
       var isMatch = (! match) &&
         (test.target === 'any' || test.target === compare.name) &&
         (compare.target === 'any' || compare.target === test.name);
 
       if (isMatch) {
         match = compare;
-        pending.splice(idx, 1);
+        db.pending.splice(idx, 1);
       }
     });
 
