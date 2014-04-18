@@ -35,6 +35,7 @@ prot.addResult = function(result) {
 };
 
 prot.run = function() {
+  debug('sending iterate message to challenger: ' + this.source);
   this.send('iterate');
 };
 
