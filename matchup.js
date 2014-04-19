@@ -55,7 +55,7 @@ module.exports = pull.Sink(function(read, server, db, done) {
 
       server.comms.iterate(
         endpoints[idx],
-        opponent.length > 1 ? opponent.one() : '',
+        opponent.length > 0 ? opponent.one() : '',
         function(err, result) {
           if (err) {
             return callback(err);
@@ -74,7 +74,7 @@ module.exports = pull.Sink(function(read, server, db, done) {
     debug('commencing iteration');
     async.timesSeries(config.iterations, iterate, function(err) {
       var zipped = results[0].toArray().map(zip(results[1].toArray()));
-      debug('completed matchup');
+      debug('completed matchup: ' + item.key);
 
       console.log(zipped);
 
