@@ -30,7 +30,9 @@ module.exports = function(server, opts) {
   db.strategyStore = db.sublevel('strategies');
 
   // create a matchup sublevel store
-  db.matchups = db.sublevel('matchups');
+  db.matchups = db.sublevel('matchups', {
+    valueEncoding: 'json'
+  });
 
   // initialise the in-memory set of strategies
   db.strategies = new SortedSet();
@@ -45,7 +47,7 @@ module.exports = function(server, opts) {
       var key = [ a, b ].sort().concat(ts()).join('|');
 
       invalidatePriorMatchups(key);
-      return db.matchups.put(key, 'TBA');
+      return db.matchups.put(key, { state: 'queued' });
     };
 
     return b ? insert(a, b) : insert;

@@ -18,11 +18,55 @@ module.exports = pull.Sink(function(read, server, db, done) {
       return (done || function() {})(end);
     }
 
-    // if the matchup has been completed, then leave it
-    if (item.value !== 'TBA') {
-      return read(null, next);
-    }
+    switch (item.value && item.value.state) {
+      case 'queued': {
+        return compete(item);
+      }
 
+      case 'precalc': {
+        return calcScores(item);
+      }
+
+      default: {
+        debug('nothing to do for matchup: ' + item.key + ', skipping');
+        return read(null, next);
+      }
+    }
+  }
+
+  function calcScores(item) {
+    var results = item.value && item.value.results;
+    var unpackedResults;
+    var zipped;
+    var scores;
+
+    debug('calculating scores for match up: ' + item.key);
+
+    // convert results back to array values
+    unpackedResults = results.map(function(res) {
+      return [].slice.call(res);
+    });
+
+    // zip the results together
+    zipped = unpackedResults[0].map(zip(unpackedResults[1]));
+
+    // calculate the score
+    scores = zipped.map(function(choices) {
+      return config.scores[choices.join('')];
+    });
+
+    db.matchups.put(item.key, {
+      state: 'complete',
+      results: results,
+      timeServed: scores.reduce(function(memo, item) {
+        return [ memo[0] + item[0], memo[1] + item[1] ];
+      }, [0, 0])
+    });
+
+    read(null, next);
+  }
+
+  function compete(item) {
     // get the strategies
     strategies = item.key.split('|').slice(0, 2);
     async.map(strategies, db.getStrategy, function(err, endpoints) {
@@ -73,16 +117,13 @@ module.exports = pull.Sink(function(read, server, db, done) {
 
     debug('commencing iteration');
     async.timesSeries(config.iterations, iterate, function(err) {
-      var zipped = results[0].toArray().map(zip(results[1].toArray()));
       debug('completed matchup: ' + item.key);
-
-      console.log(zipped);
-
-      // set the item results
-      db.matchups.put(item.key, JSON.stringify({
-        res0: results[0].toArray().join(''),
-        res1: results[1].toArray().join('')
-      }));
+      db.matchups.put(item.key, {
+        state: 'precalc',
+        results: results.map(function(res) {
+          return res.toArray().join('');
+        })
+      });
 
       read(err, next);
     });
