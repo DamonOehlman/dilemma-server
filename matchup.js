@@ -121,7 +121,7 @@ module.exports = pull.Sink(function(read, server, db, done) {
       db.matchups.put(item.key, {
         state: 'precalc',
         results: results.map(function(res) {
-          return res.toArray().join('');
+          return res.reverse().toArray().join('');
         })
       });
 
