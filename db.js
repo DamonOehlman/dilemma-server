@@ -30,9 +30,10 @@ module.exports = function(server, opts) {
   db.strategyStore = db.sublevel('strategies');
 
   // create a matchup sublevel store
-  db.matchups = db.sublevel('matchups', {
-    valueEncoding: 'json'
-  });
+  db.matchups = db.sublevel('matchups', { valueEncoding: 'json' });
+
+  // create a stats sublevel
+  db.stats = db.sublevel('stats', { valueEncoding: 'json' });
 
   // initialise the in-memory set of strategies
   db.strategies = new SortedSet();
