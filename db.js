@@ -81,6 +81,12 @@ module.exports = function(server, opts) {
     require('./matchup')(server, db)
   );
 
+  // calculate stats averages on change
+  pull(
+    pl.read(db.stats, { tail: true }),
+    require('./sinks/calc-stats')(db)
+  );
+
   pull(
     pl.live(db.strategyStore, { tail: true }),
     pull.drain(function(item) {
