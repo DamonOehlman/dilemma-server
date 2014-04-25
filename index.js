@@ -25,6 +25,9 @@ module.exports = function(opts, callback) {
   var socket = server.socket = zmq.socket('router');
   var actions = require('./actions')(socket, db);
 
+  // create the web interface
+  var web = server.web = require('./webserver')(socket, db);
+
   // initialise server comms
   var comms = server.comms = require('./comms')(socket);
 
