@@ -1,5 +1,5 @@
 var async = require('async');
-var debug = require('debug')('dilemma:checkStrategy');
+var debug = require('debug')('dilemma:runStrategy');
 
 module.exports = function(server, db) {
   return function(strategy, callback) {
