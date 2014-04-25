@@ -76,8 +76,16 @@ module.exports = function(socket, db) {
     );
   }
 
+  function stats(req, res) {
+    pull(
+      pl.read(db.stats, { tail: true }),
+      sse(res)
+    );
+  }
+
   router.define('/js/:file.js', browserifyJS);
-  router.define('/data/:endpoint', serveData);
+  router.define('/data/stats', stats);
+//   router.define('/data/:endpoint', serveData);
 
   // start the server
   server.listen(port, function() {
