@@ -40,7 +40,6 @@ module.exports = function(opts, callback) {
     var payload = [].slice.call(arguments, 3);
     var handler = actions[msgType];
 
-    debug('received ' + msgType + ' message from: ' + source);
     if (typeof handler == 'function') {
       handler.apply(this, [source].concat(payload).map(toString));
     }
