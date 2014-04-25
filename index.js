@@ -1,3 +1,4 @@
+var config = require('./config');
 var debug = require('debug')('dilemma-server');
 var EventEmitter = require('events').EventEmitter;
 var zmq = require('zmq');
@@ -57,7 +58,7 @@ module.exports = function(opts, callback) {
   // initialise default opts
   opts = defaults({}, opts, {
     host: '0.0.0.0',
-    port: 1441
+    port: config.ports.zmq
   });
 
   debug('attempting to bind server to tcp://' + opts.host + ':' + opts.port);
