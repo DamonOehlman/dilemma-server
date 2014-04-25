@@ -35,7 +35,7 @@ module.exports = function(socket, db) {
     }
 
     res.writeHead(200, {
-      'content-type': 'text/javascript'
+      'content-type': 'application/javascript;charset=utf-8'
     });
 
     return browserify(targetFile).bundle().pipe(res);
