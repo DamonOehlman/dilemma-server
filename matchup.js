@@ -119,11 +119,11 @@ module.exports = pull.Sink(function(read, server, db, done) {
         var updateStats = !!err;
 
         // initialise the stats if not initialized
-        stats = stats || {};
+        stats = stats || { average: 0, vs: {} };
 
         // check to see if we have a result different to the current stats
-        if ((! stats[competitor]) || (timeServed[idx] < stats[competitor])) {
-          stats[competitor] = timeServed[idx];
+        if ((! stats.vs[competitor]) || (timeServed[idx] < stats.vs[competitor])) {
+          stats.vs[competitor] = timeServed[idx];
           updateStats = true;
         }
 
