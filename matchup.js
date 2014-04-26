@@ -81,18 +81,14 @@ module.exports = pull.Sink(function(read, server, db, done) {
         return read(null, next);
       }
 
-      // ping the strategy runners
-      async.map(endpoints, server.comms.send('ping'), function(err, responses) {
-        // if the strategy runners are not available, then skip
-        if (err) {
-          debug('could not communicate with strategy runners, removing matchup');
-          db.matchups.del(item.key);
-          return read(null, next);
-        }
-
-        process(item, strategies, endpoints);
-      });
+      process(item, strategies, endpoints);
     });
+  }
+
+  function failMatchup(item) {
+    debug('could not communicate with strategy runners, removing matchup: ' + item.key);
+    db.matchups.del(item.key);
+    return read(null, next);
   }
 
   function updateStats(item) {
@@ -150,8 +146,6 @@ module.exports = pull.Sink(function(read, server, db, done) {
           return callback(err);
         }
 
-        console.log(result);
-
         results[idx].unshift(result);
         callback();
       });
@@ -164,10 +158,14 @@ module.exports = pull.Sink(function(read, server, db, done) {
     debug('commencing iteration');
     async.forEach(endpoints, server.comms.send('reset'), function(err) {
       if (err) {
-        return read(err, next);
+        return failMatchup(item);
       }
 
       async.timesSeries(config.iterations, iterate, function(err) {
+        if (err) {
+          return failMatchup(item);
+        }
+
         debug('completed matchup: ' + item.key);
         db.matchups.put(item.key, {
           state: 'precalc',
@@ -176,7 +174,7 @@ module.exports = pull.Sink(function(read, server, db, done) {
           })
         });
 
-        read(err, next);
+        read(null, next);
       });
     });
   }
