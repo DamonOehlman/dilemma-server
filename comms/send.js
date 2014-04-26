@@ -23,7 +23,7 @@ module.exports = function(socket) {
       }
 
       function handleTimeout() {
-        debug('timing out ping for target: ' + target.toString('hex'));
+        debug('timing out communication with target: ' + target.toString('hex'));
         clearTimeout(timer);
         socket.removeListener('message', handleMessage);
 
