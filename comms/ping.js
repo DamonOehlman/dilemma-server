@@ -1,5 +1,6 @@
 var debug = require('debug')('dilemma:comms:ping');
 var ts = require('monotonic-timestamp');
+var bt = require('buffertools');
 
 module.exports = function(socket) {
   return function(target, callback) {
@@ -8,8 +9,8 @@ module.exports = function(socket) {
     var pinger;
 
     function handleMessage(source, envelope, msgType) {
-      if (source.toString() === target && msgType.toString() === 'pong') {
-        debug('confirmed runner ' + target + ' is alive');
+      if (bt.equals(target, source) && msgType.toString() === 'pong') {
+        debug('confirmed runner ' + target.toString('hex') + ' is alive');
         socket.removeListener('message', handleMessage);
         clearTimeout(timer);
         clearTimeout(pinger);
