@@ -42,7 +42,8 @@
     "mapleTree": "~0.5",
     "browserify": "^3",
     "d3": "^3",
-    "formatter": "~0.4"
+    "formatter": "~0.4",
+    "buffertools": "^2"
   },
   "devDependencies": {
     "tape": "^2.12.0"
