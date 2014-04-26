@@ -27,7 +27,7 @@ module.exports = function(server, opts) {
   }
 
   // initialise the strategies sublevel
-  db.strategyStore = db.sublevel('strategies');
+  db.strategyStore = db.sublevel('strategies', { valueEncoding: 'binary' });
 
   // create a matchup sublevel store
   db.matchups = db.sublevel('matchups', { valueEncoding: 'json' });
