@@ -37,11 +37,12 @@ module.exports = function(opts, callback) {
   }
 
   function handleMessage(source, envelope, msgType) {
-    var payload = [].slice.call(arguments, 3);
+    var payload = [].slice.call(arguments, 3).map(toString);
     var handler = actions[msgType];
 
+    debug("received message: " + msgType.toString(), payload);
     if (typeof handler == 'function') {
-      handler.apply(this, [source].concat(payload).map(toString));
+      handler.apply(this, [source].concat(payload));
     }
   }
 
