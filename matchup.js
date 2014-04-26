@@ -82,7 +82,7 @@ module.exports = pull.Sink(function(read, server, db, done) {
       }
 
       // ping the strategy runners
-      async.map(endpoints, server.comms.ping, function(err, responses) {
+      async.map(endpoints, server.comms.send('ping'), function(err, responses) {
         // if the strategy runners are not available, then skip
         if (err) {
           debug('could not communicate with strategy runners, removing matchup');
@@ -143,19 +143,18 @@ module.exports = pull.Sink(function(read, server, db, done) {
 
     function challenge(idx, callback) {
       var opponent = results[idx ^ 1];
+      var send = server.comms.send('iterate', opponent.length > 0 ? opponent.one() : '');
 
-      server.comms.iterate(
-        endpoints[idx],
-        opponent.length > 0 ? opponent.one() : '',
-        function(err, result) {
-          if (err) {
-            return callback(err);
-          }
-
-          results[idx].unshift(result);
-          callback();
+      send(endpoints[idx], function(err, result) {
+        if (err) {
+          return callback(err);
         }
-      );
+
+        console.log(result);
+
+        results[idx].unshift(result);
+        callback();
+      });
     }
 
     function iterate(iteration, callback) {
@@ -163,16 +162,22 @@ module.exports = pull.Sink(function(read, server, db, done) {
     }
 
     debug('commencing iteration');
-    async.timesSeries(config.iterations, iterate, function(err) {
-      debug('completed matchup: ' + item.key);
-      db.matchups.put(item.key, {
-        state: 'precalc',
-        results: results.map(function(res) {
-          return res.reverse().toArray().join('');
-        })
-      });
+    async.forEach(endpoints, server.comms.send('reset'), function(err) {
+      if (err) {
+        return read(err, next);
+      }
 
-      read(err, next);
+      async.timesSeries(config.iterations, iterate, function(err) {
+        debug('completed matchup: ' + item.key);
+        db.matchups.put(item.key, {
+          state: 'precalc',
+          results: results.map(function(res) {
+            return res.reverse().toArray().join('');
+          })
+        });
+
+        read(err, next);
+      });
     });
   }
 
