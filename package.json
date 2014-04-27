@@ -1,6 +1,6 @@
 {
   "name": "dilemma-server",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Prisoner's Dilemma Strategy Runner Server",
   "main": "index.js",
   "scripts": {
