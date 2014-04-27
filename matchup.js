@@ -139,9 +139,10 @@ module.exports = pull.Sink(function(read, server, db, done) {
 
     function challenge(idx, callback) {
       var opponent = results[idx ^ 1];
-      var send = server.comms.send('iterate', opponent.length > 0 ? opponent.one() : '');
+      var waitFor = server.comms.waitFor('result', 'iterate', opponent.length > 0 ? opponent.one() : '');
 
-      send(endpoints[idx], function(err, result) {
+      // send "iterate" --> expect "result"
+      waitFor(endpoints[idx], function(err, result) {
         if (err) {
           return callback(err);
         }
@@ -156,7 +157,7 @@ module.exports = pull.Sink(function(read, server, db, done) {
     }
 
     debug('commencing iteration');
-    async.forEach(endpoints, server.comms.send('reset'), function(err) {
+    async.forEach(endpoints, server.comms.waitFor('reset:ok', 'reset'), function(err) {
       if (err) {
         return failMatchup(item);
       }

@@ -1,4 +1,4 @@
-var mods = ['send'];
+var mods = ['waitFor'];
 
 module.exports = function(socket) {
   var comms = {};
