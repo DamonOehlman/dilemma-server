@@ -50,3 +50,5 @@ while true:
    socket.send_multipart(["pong"])
 
 ```
+
+For a concrete example, check out the [python sample in the dilemma-clients repo](https://github.com/DamonOehlman/dilemma-clients/blob/master/zmq/python/dilemma.py)
