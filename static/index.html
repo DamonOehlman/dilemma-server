@@ -7,6 +7,50 @@
 <h1>Prisoner's Dilemma</h1>
 <div id="strategies"></div>
 <div id="vis"></div>
+<h2>Communicating with the Server</h2>
+<p>
+The simplest option is to write your program to accept two lines of STDIN:
+</p>
+<pre>
+%opponent-previous-results%
+%my-previous-results%
+</pre>
+<p>
+The lists are ordered with the most recent result being at the head of the list.
+</p>
+<p>
+Once you have determined your move (either C for co-operate, or D for defect) this is written to STDOUT.
+</p>
+<h3>Installing the Runner<h3>
+<p>
+The runner is written using node so you will need node installed to install it locally.  Once installed, you should be able to install the runner:
+</p>
+<pre>
+npm install -g dilemma
+</pre>
+<p>
+As an alternative you can communicate directly with the server using ZMQ, and some simple demo clients (neither are good) are available here:
+</p>
+<p><a href="https://github.com/DamonOehlman/dilemma-clients/blob/master/zmq/python/dilemma.py">Sample Python Client</a></p>
+<p><a href="https://github.com/DamonOehlman/dilemma-clients/blob/master/zmq/haskell/dilemma.hs">Sample Haskell Client</a></p>
+<p>
+The raw protocol looks like the following (using a REQ client):
+</p>
+<pre>
+SENDMULTI ["reg", "team:strategy"]
+
+forever $
+    RECVMULTI
+
+    - server tests if you are alive
+    [ "ping" ] => SENDMULTI [ "pong" ]
+
+    - run your strategy
+    [ "iterate", $opponent_last ] => SENDMULTI [ "result", $my_move ]
+
+    - reset your iteration information (it's a new opponent)
+    [ "reset" ] => SENDMULTI [ "reset:ok" ]
+</pre>
 <script src="js/app.js"></script>
 </body>
 </html>
