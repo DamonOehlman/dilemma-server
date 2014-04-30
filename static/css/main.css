@@ -2,12 +2,13 @@ body {
 }
 
 div#strategies {
+  font-family: Courier New;
 }
 
 div#strategies div:before {
   content: attr(data-label);
   display: inline-block;
-  width: 200px;
+  width: 400px;
   font-weight: bold;
 }
 
