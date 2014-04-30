@@ -23,8 +23,10 @@ module.exports = pull.Sink(function(read, server, db, done) {
       var args = JSON.parse(item.value);
 
       processor.apply(null, args.concat(function(err) {
-        read(err, next);
       }));
+
+      // drain
+      read(null, next);
     }
     // otherwise, we have no processor so add a debug warning
     else {
