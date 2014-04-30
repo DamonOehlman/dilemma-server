@@ -17,6 +17,24 @@ var processor = require('./processor');
   an upcoming [NICTA](http://nicta.com.au/) engineering retreat - yeah I know,
   NICTA is a cool place to work :)
 
+  ## Getting Started
+
+  Clone the repo, and get the server running:
+
+  ```
+  git clone https://github.com/DamonOehlman/dilemma-server.git
+  cd dilemma-server
+  npm install
+  npm start
+  ```
+
+  As this is highly experimental, you may need to reset the server data
+  and restart.  This can be achieved with the following command:
+
+  ```
+  rm -rf dilemma-data/ && npm start
+  ```
+
   <<< docs/interfacing.md
 
 **/
@@ -45,7 +63,7 @@ module.exports = function(opts, callback) {
     }
 
 
-    debug("received message: " + msgType.toString(), payload);
+    // debug("received message: " + msgType.toString(), payload);
     if (typeof handler == 'function') {
       handler.apply(this, [source].concat(payload));
     }
