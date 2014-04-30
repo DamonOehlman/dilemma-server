@@ -1,5 +1,6 @@
 var async = require('async');
 var config = require('./config');
+var extend = require('cog/extend');
 var debug = require('debug')('dilemma:matchup');
 var length = require('whisk/length');
 var pluck = require('whisk/pluck');
@@ -73,16 +74,17 @@ module.exports = pull.Sink(function(read, server, db, done) {
     if (invalidMatchup) {
       debug('invalid results for matchup: ' + item.key + ', deleting');
       db.matchups.del(item.key);
-    }
-    else {
-      db.matchups.put(item.key, {
-        state: 'complete',
-        results: results,
-        timeServed: timeServed
-      });
+
+      return read(null, next);
     }
 
-    read(null, next);
+    extend(item.value, {
+      state: 'complete',
+      results: results,
+      timeServed: timeServed
+    });
+
+    next(null, item);
   }
 
   function compete(item) {
@@ -183,14 +185,15 @@ module.exports = pull.Sink(function(read, server, db, done) {
         }
 
         debug('completed matchup: ' + item.key);
-        db.matchups.put(item.key, {
+
+        extend(item.value, {
           state: 'precalc',
           results: results.map(function(res) {
             return res.reverse().toArray().join('');
           })
         });
 
-        read(null, next);
+        next(null, item);
       });
     });
   }
