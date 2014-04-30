@@ -43,6 +43,8 @@ module.exports = pull.Sink(function(read, server, db, done) {
     var unpackedResults;
     var zipped;
     var scores;
+    var timeServed;
+    var invalidMatchup = false;
 
     debug('calculating scores for match up: ' + item.key);
 
@@ -59,13 +61,27 @@ module.exports = pull.Sink(function(read, server, db, done) {
       return config.scores[choices.join('')];
     });
 
-    db.matchups.put(item.key, {
-      state: 'complete',
-      results: results,
-      timeServed: scores.reduce(function(memo, item) {
-        return [ memo[0] + item[0], memo[1] + item[1] ];
-      }, [0, 0])
-    });
+    // calculate the total timeServed
+    timeServed = scores.reduce(function(memo, item) {
+      if (isNaN(item[0]) || isNaN(item[1])) {
+        console.log(item[0], item[1]);
+        invalidMatchup = true;
+      }
+
+      return invalidMatchup ? [ 0, 0 ] : [ memo[0] + item[0], memo[1] + item[1] ];
+    }, [0, 0]);
+
+    if (invalidMatchup) {
+      debug('invalid results for matchup: ' + item.key + ', deleting');
+      db.matchups.del(item.key);
+    }
+    else {
+      db.matchups.put(item.key, {
+        state: 'complete',
+        results: results,
+        timeServed: timeServed
+      });
+    }
 
     read(null, next);
   }

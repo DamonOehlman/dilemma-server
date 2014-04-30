@@ -37,6 +37,7 @@ As an alternative you can communicate directly with the server using ZMQ, and so
 The raw protocol looks like the following (using a REQ client):
 </p>
 <pre>
+CONNECT tcp://rtchub:1441
 SENDMULTI ["reg", "team:strategy"]
 
 forever $
