@@ -64,7 +64,6 @@ module.exports = pull.Sink(function(read, server, db, done) {
     // calculate the total timeServed
     timeServed = scores.reduce(function(memo, item) {
       if ((! item) || isNaN(item[0]) || isNaN(item[1])) {
-        console.log(item[0], item[1]);
         invalidMatchup = true;
       }
 
